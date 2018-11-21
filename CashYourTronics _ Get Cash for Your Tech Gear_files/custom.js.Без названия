@@ -1,0 +1,1225 @@
+/**
+ * Created by RAMS on 06.09.2017.
+ */
+var calculatedValues = [];
+var calculatedOffer = 0; //offer with conditions
+var BaseOffer = 0;//offer without conditions
+var reg_firstname = ''
+var reg_lastname = ''
+var reg_email = '';
+var reg_address = ''
+var reg_city = '';
+var reg_state = '';
+var reg_country = '';
+var reg_zip = '';
+var carriers='';
+
+function CancelOrder(order){
+    console.log(order);
+
+    $('#orderId').val(order);
+
+    $.fancybox.open({
+        src:'#test_confirm',
+
+        opts : {
+            afterShow : function( instance, current ) {
+                console.info( 'done!' );
+            }
+        },
+
+        afterShow : function( instance, current ) {
+            console.info( 'done1!' );
+        }
+        /*
+        opts : {
+            afterClose: function (instance, current) {
+
+                console.log(instance);
+
+                console.log(current);
+
+            },
+            onClosed: function (instance, current) {
+
+                console.log(instance);
+
+                console.log(current);
+
+            },
+        }*/
+
+    });
+}
+
+function CancelOrderConfirm(){
+    console.log('confirm');
+    var orderId = $('#orderId').val();
+
+
+    var data = {'OrderId':orderId, '_token':$('#_token').val() }
+    $.post("/order/cancel", data, function (response) {
+        console.log(response);
+        if (response.error == false) {
+
+        }else{
+        }
+
+    })
+
+}
+
+
+$(document).ready(function () {
+
+
+
+
+    $('#contactUsform').on('submit', function (e) {
+        e.preventDefault();
+        var data = $(this).serialize();
+        $.post("/contactUs", data, function (response) {
+            console.log(response);
+            if (response.error == false) {
+                toastr.success('We get your request', 'We get your request');
+$('#contactUSForm').hide('fast');
+                $('#contactUsConfirm').show('slow');
+
+
+            }else{
+                toastr.error('Server error', response.msg);
+            }
+        });
+
+
+    });
+
+
+
+
+
+
+
+
+
+    $('#registerForm').on('submit', function (e) {
+        e.preventDefault();
+        var data = $(this).serialize();
+
+        reg_firstname = $('#registerForm [name="FirstName"] ').val();
+        reg_lastname = $('#registerForm [name="LastName"] ').val();
+        reg_email = $('#registerForm [name="email"] ').val();
+        //fill other fields in form with this values
+        $('#check [name="FirstName"] ').val(reg_firstname);
+        $('#check [name="LastName"] ').val(reg_lastname);
+        $('#shipping [name="shipping_FirstName"] ').val(reg_firstname);
+        $('#shipping [name="shipping_LastName"] ').val(reg_lastname);
+
+
+        $('label.regemail').removeClass('error');
+        $('span.regemail').html('');
+        $('label.regpassword').removeClass('error');
+        $('span.regpassword').html('');
+        $('label.regFirstname').removeClass('error');
+        $('span.regFirstname').html('');
+        $('label.regLastname').removeClass('error');
+        $('span.regLastname').html('');
+
+
+        $.post("/register", data, function (response) {
+            console.log(response);
+            if (response.error == false) {
+
+
+                $('#userId').val(response.user.id);
+                var current_fs = $('#authFieldset');
+                var next_fs = current_fs.next();
+                //activate next step on progressbar using the index of next_fs
+                $("#progressbar li").removeClass("active");
+                $("#progressbar li").eq($("fieldset").index(next_fs)).addClass("active");
+                next_fs.show();
+                current_fs.hide();
+            } else {
+
+                if (response.email.length > 0) {
+
+                    $('span.regemail').html(response.email[0]);
+                    $('label.regemail').addClass('error');
+                }
+
+                if (response.password.length > 0) {
+                    $('span.regpassword').html(response.password[0]);
+                    $('label.regpassword').addClass('error');
+                }
+
+
+                if (response.FirstName.length > 0) {
+                    $('span.regFirstname').html(response.FirstName[0]);
+                    $('label.regFirstname').addClass('error');
+                }
+
+                if (response.LastName.length > 0) {
+
+                    $('span.regLastname').html(response.LastName[0]);
+                    $('label.regLastname').addClass('error');
+
+                }
+
+            }
+        }).fail(function() {
+      //      alert( "Server error" );
+            toastr.error('Server error', 'Error');
+        });
+    });
+
+
+
+
+    $('#check').on('submit', function (e) {
+        e.preventDefault();
+        var data = $(this).serialize();
+        console.log(data);
+        /*
+         reg_AddressName
+         reg_FirstName
+         reg_LastName
+         reg_addres1
+         reg_addres2
+         reg_city
+         reg_state
+         reg_zip
+         */
+        $('label.reg_AddressName').removeClass('error');
+        $('span.reg_AddressName').html('');
+        $('label.reg_FirstName').removeClass('error');
+        $('span.reg_FirstName').html('');
+        $('label.reg_LastName').removeClass('error');
+        $('span.reg_LastName').html('');
+        $('label.reg_addres1').removeClass('error');
+        $('span.reg_addres1').html('');
+    /*    $('label.reg_addres2').removeClass('error');
+        $('span.reg_addres2').html('');*/
+
+        $('label.reg_city').removeClass('error');
+        $('span.reg_city').html('');
+        $('label.reg_state').removeClass('error');
+        $('span.reg_state').html('');
+        $('label.reg_zip').removeClass('error');
+        $('span.reg_zip').html('');
+
+
+        reg_city = $('#check [name="city"] ').val();
+        reg_address = $('#check [name="AddressName"] ').val();
+        reg_state = $('#check [name="state"] ').val();
+        reg_country = $('#check [name="country"] ').val();
+        reg_zip = $('#check [name="zip"] ').val();
+        //fill other fields in form with this values
+        $('#shipping [name="shipping_Addres"] ').val(reg_address);
+        $('#shipping [name="shipping_city"] ').val(reg_city);
+        $('#shipping [name="shipping_country"] ').val(reg_country);
+        $('#shipping [name="shipping_province"] ').val(reg_state);
+        $('#shipping [name="shipping_zip"] ').val(reg_zip);
+
+
+        $.post("/register/payments", data, function (response) {
+            console.log(response);
+            if (response.error == false) {
+                var current_fs = $('#PaymentFieldset');
+                var next_fs = current_fs.next();
+                //activate next step on progressbar using the index of next_fs
+                $("#progressbar li").removeClass("active");
+                $("#progressbar li").eq($("fieldset").index(next_fs)).addClass("active");
+                next_fs.show();
+                current_fs.hide();
+            } else {
+                if (response.errors.AddressName != undefined && response.errors.AddressName.length > 0) {
+                    $('span.reg_AddressName').html(response.errors.AddressName[0]);
+                    $('label.reg_AddressName').addClass('error');
+                }
+
+                if (response.errors.FirstName != undefined && response.errors.FirstName.length > 0) {
+                    $('span.reg_FirstName').html(response.errors.FirstName[0]);
+                    $('label.reg_FirstName').addClass('error');
+                }
+
+                if (response.errors.LastName != undefined && response.errors.LastName.length > 0) {
+                    $('span.reg_LastName').html(response.errors.LastName[0]);
+                    $('label.reg_LastName').addClass('error');
+                }
+
+                if (response.errors.addres1 != undefined && response.errors.addres1.length > 0) {
+                    $('span.reg_addres1').html(response.errors.addres1[0]);
+                    $('label.reg_addres1').addClass('error');
+                }
+
+           /*     if (response.errors.addres2 != undefined && response.errors.addres2.length > 0) {
+                    $('span.reg_addres2').html(response.errors.addres2[0]);
+                    $('label.reg_addres2').addClass('error');
+                }*/
+                if (response.errors.city != undefined && response.errors.city.length > 0) {
+                    $('span.reg_city').html(response.errors.city[0]);
+                    $('label.reg_city').addClass('error');
+                }
+                if (response.errors.state != undefined && response.errors.state.length > 0) {
+                    $('span.reg_state').html(response.errors.state[0]);
+                    $('label.reg_state').addClass('error');
+                }
+                if (response.errors.zip != undefined && response.errors.zip.length > 0) {
+                    $('span.reg_zip').html(response.errors.zip[0]);
+                    $('label.reg_zip').addClass('error');
+                }
+
+
+            }
+        });
+    });
+
+
+    $('#paypal').on('submit', function (e) {
+        e.preventDefault();
+        var data = $(this).serialize();
+        console.log(data);
+        $.post("/register/payments", data, function (response) {
+            console.log(response);
+            if (response.error == false) {
+                var current_fs = $('#PaymentFieldset');
+                var next_fs = current_fs.next();
+                //activate next step on progressbar using the index of next_fs
+                $("#progressbar li").removeClass("active");
+                $("#progressbar li").eq($("fieldset").index(next_fs)).addClass("active");
+                next_fs.show();
+                current_fs.hide();
+            } else {
+                for (var k in response.errors) {
+                    if (response.errors.hasOwnProperty(k)) {
+                        var message = response.errors[k];
+
+                        $('#' + k + '_error').html(response.errors[k][0]);
+                    }
+                }
+            }
+        });
+    });
+
+    $('#shipping').on('submit', function (e) {
+        e.preventDefault();
+        var data = $(this).serialize();
+        console.log(data);
+        $('label.shipping_FirstName').removeClass('error');
+        $('span.shipping_FirstName').html('');
+        $('label.shipping_LastName').removeClass('error');
+        $('span.shipping_LastName').html('');
+        $('label.shipping_Addres').removeClass('error');
+        $('span.shipping_Addres').html('');
+        $('label.shipping_city').removeClass('error');
+        $('span.shipping_city').html('');
+        $('label.shipping_country').removeClass('error');
+        $('span.shipping_country').html('');
+        $('label.shipping_province').removeClass('error');
+        $('span.shipping_province').html('');
+        $('label.shipping_zip').removeClass('error');
+        $('span.shipping_zip').html('');
+        $('label.shipping_phone').removeClass('error');
+        $('span.shipping_phone').html('');
+
+        $.post("/register/shipping", data, function (response) {
+            console.log(response);
+            if (response.error == false) {
+                var current_fs = $('#shippingFieldset');
+                var next_fs = current_fs.next();
+                //activate next step on progressbar using the index of next_fs
+                $("#progressbar li").removeClass("active");
+                $("#progressbar li").eq($("fieldset").index(next_fs)).addClass("active");
+                next_fs.show();
+                current_fs.hide();
+            } else {
+
+
+                if (response.errors.shipping_FirstName != undefined && response.errors.shipping_FirstName.length > 0) {
+                    $('span.shipping_FirstName').html(response.errors.shipping_FirstName[0]);
+                    $('label.shipping_FirstName').addClass('error');
+                }
+
+                if (response.errors.shipping_LastName != undefined && response.errors.shipping_LastName.length > 0) {
+                    $('span.shipping_LastName').html(response.errors.shipping_LastName[0]);
+                    $('label.shipping_LastName').addClass('error');
+                }
+
+                if (response.errors.shipping_Addres != undefined && response.errors.shipping_Addres.length > 0) {
+                    $('span.shipping_Addres').html(response.errors.shipping_Addres[0]);
+                    $('label.shipping_Addres').addClass('error');
+                }
+                if (response.errors.shipping_city != undefined && response.errors.shipping_city.length > 0) {
+                    $('span.shipping_city').html(response.errors.shipping_city[0]);
+                    $('label.shipping_city').addClass('error');
+                }
+                if (response.errors.shipping_country != undefined && response.errors.shipping_country.length > 0) {
+                    $('span.shipping_country').html(response.errors.shipping_country[0]);
+                    $('label.shipping_country').addClass('error');
+                }
+
+                if (response.errors.shipping_province != undefined && response.errors.shipping_province.length > 0) {
+                    $('span.shipping_province').html(response.errors.shipping_province[0]);
+                    $('label.shipping_province').addClass('error');
+                }
+
+                if (response.errors.shipping_zip != undefined && response.errors.shipping_zip.length > 0) {
+                    $('span.shipping_zip').html(response.errors.shipping_zip[0]);
+                    $('label.shipping_zip').addClass('error');
+                }
+                if (response.errors.shipping_phone != undefined && response.errors.shipping_phone.length > 0) {
+                    $('span.shipping_phone').html(response.errors.shipping_phone[0]);
+                    $('label.shipping_phone').addClass('error');
+                }
+
+
+            }
+        });
+    });
+
+
+    $('body').on('change', 'input[name="condition"]', function (e) {
+
+        var OfferId = $('input[name="condition"]:checked').val();
+        console.log($('input[name="condition"]:checked').val());
+
+        console.log(calculatedOffer);
+
+        calculatedValues.forEach(function (item) {
+
+            console.log(item);
+            if (item.Id == OfferId) {
+                $('.selectedCondition').html(item.Name);
+
+                if (item.Deduct == 1) {
+
+
+                    calculatedOffer = BaseOffer - (BaseOffer * item.Percent) / 100;
+                } else {
+
+                    calculatedOffer = BaseOffer + (BaseOffer * item.Percent) / 100;
+                }
+
+            }
+
+        })
+
+
+        $('.calculatedOfer').html(calculatedOffer.toFixed(2));
+        $('#calculatedOfer').val(calculatedOffer.toFixed(2));
+
+    });
+
+
+
+    $("body").on("change", ".select_cont select", function () {
+        console.log('change');
+        console.log(carriers);
+        var countHidden=$(".select_cont label ").filter(":hidden").length;
+        console.log( countHidden );
+        if(countHidden == 0){
+            console.log('Show button');
+
+            $('#allOptionsSelected').val(true);
+            if(carriers!=''){
+                $('#CarrierList').show('slow');
+            }else{
+                fillParametrs();
+            }
+
+        }else{
+            $(this).closest('label').next().show();
+        }
+
+
+
+
+    });
+
+
+
+
+
+
+
+    $('body').on(  'click','.carrierList', function (e) {
+        console.log('select carrier');
+        console.log('click');
+        //console.log($('input[name=carrier]').val());
+    var     carrier= $(this).val();
+
+        console.log(carrier);
+
+      /*  if ($('input[name=carrier]').val() != undefined) {
+            if ($('input[name=carrier]:checked').val() == undefined) {
+                //    alert('Please select carrier');
+                toastr.warning('Please select carrier', 'Carrier required');
+                return false;
+            }
+        }
+        */
+        if (carrier == undefined) {
+            //    alert('Please select carrier');
+            toastr.warning('Please select carrier', 'Carrier required');
+            return false;
+        }
+
+
+
+        if ( $('#allOptionsSelected').val() != "true") {
+            toastr.warning('Please select all avaliable options', 'Options selects required');
+            return false;
+
+        }
+
+
+        fillParametrs();
+
+    })
+
+
+
+
+
+
+    $('.selectModel').on('click', function (e) {
+
+   //     var model = $('input[name="modelId"]:checked').val();
+        var model = $(this).val();
+
+        console.log(model);
+        if (model == undefined) {
+            toastr.warning('Please select model first', 'Please select model');
+       //     alert('Please select model first');
+            return false;
+        }
+
+        $('.preloader').fadeIn('fast');
+        console.log('click');
+
+
+        $.get('/model/' + model, function (response) {
+            console.log(response);
+            if (response.error == false) {
+
+
+
+                $('#deviceId').val(response.device.id);
+                $('#ModelId').val(response.model.id);
+                $('#modelBreadCrumb').html('/ '+response.model.ModelName)
+                var options = '';
+                options = '<p>Select Your Macbook Model Below to Get an Instant Quote</p>';
+                window.TotalOptionsCount=0;
+                var totalOptions=0;
+           //     var toitalCarriers=0;
+
+                $('#CarrierList').hide('fast');
+                for (var k in response.parametrs) {
+                    if (response.parametrs.hasOwnProperty(k)) {
+                        var parametrs = response.parametrs[k];
+                        if (parametrs.length > 0) {
+                            totalOptions++;
+                        }
+
+
+                        if (k == 'carriers') {
+                            console.log('skip carrier');
+                            parametrs.forEach(function (item) {
+                                carriers = carriers + '  <div class="radio">' +
+                                    '<input id="br' + item.Id + '" name="carrier"  class="carrierList" type="radio" data-price="" value="' + item.Id + '">' +
+                                    '<label for="br' + item.Id + '" class="radio-step2">' +
+                                    '<div class="step2_img">' +
+                                    '<img src="' + item.Image + '" alt="">' +
+                                    '</div>' +
+                                    '<h4>' + item.Name + '</h4>' +
+                                    '</label>' +
+                                    '</div> ';
+
+                            });
+                            continue;
+                        }
+
+                        if (parametrs.length > 0) {
+                            window.TotalOptionsCount++;
+                            console.log(k + 'hasOptions');
+                            console.log(parametrs);
+                            options = options + '<label>' +
+                                '<span>' + k + '</span>' +
+                                '<div class="select">' +
+                                '<i class="arrow down"></i>' +
+                                '<select name="' + k + '" >' +
+                                '<option>Select</option>';
+                            parametrs.forEach(function (item) {
+                                console.log(item);
+                                options = options + '<option value="' + item.Id + '">' + item.Name + '</option>';
+                            });
+                            options = options + '</select>' +
+                                '</div>' +
+                                '</label>';
+                        }
+                    }
+                }
+                console.log('WE HAVE total '+totalOptions);
+                if(window.TotalOptionsCount==0){
+                    console.log(k + ' hasnt options');
+                    $('#allOptionsSelected').val(true);
+                }
+                if(totalOptions==0){
+             /*       $('#parametrsBtn').click();*/
+                    fillParametrs();
+
+                    var current_fs = $('#ModelList');
+                    var next_fs = $('#ConditionList');
+                    //activate next step on progressbar using the index of next_fs
+                    $("#progressbar li").removeClass("active");
+                    $("#progressbar li").eq($("fieldset").index(next_fs)).addClass("active");
+                    next_fs.show();
+                    current_fs.hide();
+                    $('body, html, #breadCrumb').scrollTop(0);
+
+                }else{
+
+
+
+
+                var current_fs = $('#ModelList');
+                var next_fs = current_fs.next();
+                //activate next step on progressbar using the index of next_fs
+                $("#progressbar li").removeClass("active");
+                $("#progressbar li").eq($("fieldset").index(next_fs)).addClass("active");
+                next_fs.show();
+                current_fs.hide();
+          //      options = options + '<input type="button" name="next" class="subb" value="Continue" id="parametrsBtn" />'
+                $('#optionsList').html(options);
+                $('#CarrierList').html(carriers);
+                $('#optionsList >*').not(':nth-child(2)').hide();
+
+                $('body, html, #breadCrumb').scrollTop(0);
+                    $('.preloader').fadeOut('slow');
+            }
+
+            } else {
+    //            alert('error with your request');
+                toastr.error('error with your request', 'Error');
+                $('.preloader').fadeOut('slow');
+            }
+
+        })
+    });
+
+    /*
+     $('.radio').click(function(){
+     console.log('click radio');
+     $(this).find('input:radio').first().prop('checked', true);
+
+     console.log($(this).find('input:radio').first());
+     })
+
+     */
+
+
+    $('.selectPayment').on('click', function (e) {
+
+
+
+
+
+        if ($('#msform [name="PaymentType"]:checked').val() == 'Check') {
+        /*    if ($('#msform [name="Payments_AddressName"]').val() == '') {
+                var Payments_AddressName = $('#msform [name="Payments_AddressName"]');
+                Payments_AddressName.next('span').html('This field is required');
+                Payments_AddressName.parent('label').addClass('error');
+                return false;
+            } else {
+                var Payments_AddressName = $('#msform [name="Payments_AddressName"]');
+                Payments_AddressName.next('span').html('');
+                Payments_AddressName.parent('label').removeClass('error');
+
+            }
+*/
+
+            if ($('#msform [name="task_1"]:checked').length > 0 ) {
+
+            }else{
+
+                toastr.warning('You must agree to service terms', 'Warning');
+                return false;
+            }
+
+
+            if ($('#msform [name="Payments_FirstName"]').val() == '') {
+                var Payments_FirstName = $('#msform [name="Payments_FirstName"]');
+                Payments_FirstName.next('span').html('This field is required');
+                Payments_FirstName.parent('label').addClass('error');
+                return false;
+            } else {
+                var Payments_FirstName = $('#msform [name="Payments_FirstName"]');
+                Payments_FirstName.next('span').html('');
+                Payments_FirstName.parent('label').removeClass('error');
+
+            }
+
+            if ($('#msform [name="Payments_LastName"]').val() == '') {
+                var Payments_LastName = $('#msform [name="Payments_LastName"]');
+                Payments_LastName.next('span').html('This field is required');
+                Payments_LastName.parent('label').addClass('error');
+                return false;
+            } else {
+                var Payments_LastName = $('#msform [name="Payments_LastName"]');
+                Payments_LastName.next('span').html('');
+                Payments_LastName.parent('label').removeClass('error');
+
+
+            }
+
+            if ($('#msform [name="Payments_addres1"]').val() == '') {
+                var Payments_addres1 = $('#msform [name="Payments_addres1"]');
+                Payments_addres1.next('span').html('This field is required');
+                Payments_addres1.parent('label').addClass('error');
+                return false;
+            } else {
+                var Payments_addres1 = $('#msform [name="Payments_addres1"]');
+                Payments_addres1.next('span').html('');
+                Payments_addres1.parent('label').removeClass('error');
+
+            }
+
+
+            if ($('#msform [name="Payments_city"]').val() == '') {
+                var Payments_city = $('#msform [name="Payments_city"]');
+                Payments_city.next('span').html('This field is required');
+                Payments_city.parent('label').addClass('error');
+                return false;
+            } else {
+                var Payments_city = $('#msform [name="Payments_city"]');
+                Payments_city.next('span').html('');
+                Payments_city.parent('label').removeClass('error');
+
+            }
+
+            if ($('#msform [name="Payments_state"]').val() == '') {
+                var Payments_state = $('#msform [name="Payments_state"]');
+                Payments_state.next('span').html('This field is required');
+                Payments_state.parent('label').addClass('error');
+                return false;
+            } else {
+                var Payments_state = $('#msform [name="Payments_state"]');
+                Payments_state.next('span').html('');
+                Payments_state.parent('label').removeClass('error');
+
+            }
+
+            if ($('#msform [name="Payments_zip"]').val() == '') {
+                var Payments_zip = $('#msform [name="Payments_zip"]');
+                Payments_zip.next('span').html('This field is required');
+                Payments_zip.parent('label').addClass('error');
+                return false;
+            } else {
+                var Payments_zip = $('#msform [name="Payments_zip"]');
+                Payments_zip.next('span').html('');
+                Payments_zip.parent('label').removeClass('error');
+
+            }
+        } else {
+
+
+            if ($('#msform [name="task_2"]:checked').length > 0 ) {
+
+            }else{
+
+                toastr.warning('You must agree to service terms', 'Warning');
+                return false;
+            }
+
+
+            if ($('#msform [name="Payments_paypalId"]').val() != $('#msform [name="Payments_paypalId_confirm"]').val()) {
+         //       alert('Pyapal id confirmation dont match');
+                toastr.error('Paypal id confirmation doesn\'t match', 'Error');
+                var paypal = $('#msform [name="Payments_paypalId"]');
+                paypal.next('span').html('confirmation doesn\'t match');
+                paypal.parent('label').addClass('error');
+                return false;
+
+            }
+            if ($('#msform [name="Payments_paypalId"]').val() == '') {
+            //    alert('Pyapal id required');
+                toastr.error('Paypal id required', 'Error');
+                var paypal = $('#msform [name="Payments_paypalId"]');
+                paypal.next('span').html('This field is required');
+                paypal.parent('label').addClass('error');
+                return false;
+            }
+        }
+
+
+        var current_fs = $('#PaymentList');
+        var next_fs = current_fs.next();
+        //activate next step on progressbar using the index of next_fs
+        $("#progressbar li").removeClass("active");
+        $("#progressbar li").eq($("fieldset").index(next_fs)).addClass("active");
+        next_fs.show();
+        current_fs.hide();
+
+        $('body, html, #breadCrumb').scrollTop(0);
+
+
+    });
+
+
+    $('#selectShipping').on('click', function (e) {
+
+
+        if ($('#msform [name="shipping_email"]').val() == '') {
+            var shipping_email = $('#msform [name="shipping_email"]');
+            shipping_email.next('span').html('This field is required');
+            shipping_email.parent('label').addClass('error');
+            return false;
+        } else {
+            var shipping_email = $('#msform [name="shipping_email"]');
+            shipping_email.next('span').html('');
+            shipping_email.parent('label').removeClass('error');
+        }
+
+        if ($('#msform [name="shipping_FirstName"]').val() == '') {
+            var shipping_FirstName = $('#msform [name="shipping_FirstName"]');
+            shipping_FirstName.next('span').html('This field is required');
+            shipping_FirstName.parent('label').addClass('error');
+            return false;
+        } else {
+            var shipping_FirstName = $('#msform [name="shipping_FirstName"]');
+            shipping_FirstName.next('span').html('');
+            shipping_FirstName.parent('label').removeClass('error');
+        }
+
+        if ($('#msform [name="shipping_LastName"]').val() == '') {
+            var shipping_LastName = $('#msform [name="shipping_LastName"]');
+            shipping_LastName.next('span').html('This field is required');
+            shipping_LastName.parent('label').addClass('error');
+            return false;
+        } else {
+            var shipping_LastName = $('#msform [name="shipping_LastName"]');
+            shipping_LastName.next('span').html('');
+            shipping_LastName.parent('label').removeClass('error');
+        }
+
+
+        if ($('#msform [name="shipping_Addres"]').val() == '') {
+            var shipping_Addres = $('#msform [name="shipping_Addres"]');
+            shipping_Addres.next('span').html('This field is required');
+            shipping_Addres.parent('label').addClass('error');
+            return false;
+        } else {
+            var shipping_Addres = $('#msform [name="shipping_Addres"]');
+            shipping_Addres.next('span').html('');
+            shipping_Addres.parent('label').removeClass('error');
+        }
+
+
+        if ($('#msform [name="shipping_city"]').val() == '') {
+            var shipping_city = $('#msform [name="shipping_city"]');
+            shipping_city.next('span').html('This field is required');
+            shipping_city.parent('label').addClass('error');
+            return false;
+        } else {
+            var shipping_city = $('#msform [name="shipping_city"]');
+            shipping_city.next('span').html('');
+            shipping_city.parent('label').removeClass('error');
+        }
+
+        if ($('#msform [name="shipping_city"]').val() == '') {
+            var shipping_city = $('#msform [name="shipping_city"]');
+            shipping_city.next('span').html('This field is required');
+            shipping_city.parent('label').addClass('error');
+            return false;
+        } else {
+            var shipping_city = $('#msform [name="shipping_city"]');
+            shipping_city.next('span').html('');
+            shipping_city.parent('label').removeClass('error');
+        }
+
+        if ($('#msform [name="shipping_country"]').val() == '') {
+            var shipping_country = $('#msform [name="shipping_country"]');
+            shipping_country.next('span').html('This field is required');
+            shipping_country.parent('label').addClass('error');
+            return false;
+        } else {
+            var shipping_country = $('#msform [name="shipping_country"]');
+            shipping_country.next('span').html('');
+            shipping_country.parent('label').removeClass('error');
+        }
+
+        if ($('#msform [name="shipping_province"]').val() == '') {
+            var shipping_province = $('#msform [name="shipping_province"]');
+            shipping_province.next('span').html('This field is required');
+            shipping_province.parent('label').addClass('error');
+            return false;
+        } else {
+            var shipping_province = $('#msform [name="shipping_province"]');
+            shipping_province.next('span').html('');
+            shipping_province.parent('label').removeClass('error');
+        }
+
+        if ($('#msform [name="shipping_zip"]').val() == '') {
+            var shipping_zip = $('#msform [name="shipping_zip"]');
+            shipping_zip.next('span').html('This field is required');
+            shipping_zip.parent('label').addClass('error');
+            return false;
+        } else {
+            var shipping_zip = $('#msform [name="shipping_zip"]');
+            shipping_zip.next('span').html('');
+            shipping_zip.parent('label').removeClass('error');
+        }
+
+        if ($('#msform [name="shipping_phone"]').val() == '') {
+            var shipping_phone = $('#msform [name="shipping_phone"]');
+            shipping_phone.next('span').html('This field is required');
+            shipping_phone.parent('label').addClass('error');
+            return false;
+        } else {
+            var shipping_phone = $('#msform [name="shipping_phone"]');
+            shipping_phone.next('span').html('');
+            shipping_phone.parent('label').removeClass('error');
+        }
+
+
+        var current_fs = $('#ShippingList');
+        var next_fs = current_fs.next();
+        //activate next step on progressbar using the index of next_fs
+        $("#progressbar li").removeClass("active");
+        $("#progressbar li").eq($("fieldset").index(next_fs)).addClass("active");
+        next_fs.show();
+        current_fs.hide();
+
+        $('body, html, #breadCrumb').scrollTop(0);
+
+    })
+
+
+
+
+    $('#SendForm').click(function () {
+
+
+        var data = $('#msform').serialize();
+        console.log(data);
+
+        if ($('#msform [name="Terms"]:checked').length > 0 ) {
+
+        }else{
+
+            toastr.warning('You must  accept Terms service', 'Warning');
+            return false;
+        }
+
+
+
+        $('label.order_email').removeClass('error');
+        $('span.order_email').html('');
+        $('label.order_paypal_account').removeClass('error');
+        $('span.order_paypal_account').html('');
+        $('label.order_paypal_account2').removeClass('error');
+        $('span.order_paypal_account2').html('');
+
+        if ($('#msform [name="email"]').val() == '') {
+
+            $('span.order_email').html('This field is required');
+            $('label.order_email').addClass('error');
+
+   //         alert('Please enter email')
+            toastr.warning('Please enter email', 'Email required');
+            return false;
+
+        }
+
+        if ($('#msform [name="paypal_account"]').val() == '') {
+
+            $('span.order_paypal_account').html('This field is required');
+            $('label.order_paypal_account').addClass('error');
+        //    alert('Please enter paypal_account')
+            toastr.warning('Please enter paypal_account', 'Paypal required');
+            return false;
+
+        }
+
+        if ($('#msform [name="paypal_account2"]').val() == '') {
+
+            $('span.order_paypal_account2').html('This field is required');
+            $('label.order_paypal_account2').addClass('error');
+
+       //     alert('Please enter shipping details')
+            toastr.warning('Please enter shipping details', 'Shipping details required');
+            return false;
+
+        }
+
+
+        $(this).prop('disabled', true);
+        $('#loadeSendForm').fadeIn('fast');
+   //     $('.preloader').fadeIn('fast');
+
+        $.post("/order", data, function (response) {
+            $('#SendForm').prop('disabled', false);
+            $('#loadeSendForm').fadeOut('fast');
+     //       $('.preloader').fadeOut('fast');
+            console.log(response)
+            if (response.error == false) {
+
+                window.location.href = "/orderCompleted/"+response.order;
+            /*    $.fancybox.open({
+                    src:'#orderCreated',
+                    afterClose:function( instance, current ) {
+
+                    }
+                });*/
+
+            } else {
+          //      alert('Cant Create order. '+response.msg);
+                toastr.warning(response.msg, 'Cant Create order');
+            }
+
+        }).fail(function() {
+       //     alert('Cant Create order');
+            toastr.warning('Server error', 'Cant Create order');
+            $('#SendForm').prop('disabled', false);
+            $('#loadeSendForm').fadeOut('fast');
+        //    $('.preloader').fadeOut('fast');
+
+        });
+
+
+    })
+
+
+
+
+
+        $('#test23').click(function(){
+            console.log('click');
+
+         /*   $.fancybox.open( $("#orderCreated")
+
+
+            );
+*/
+
+/*
+            $("#orderCreated").fancybox({
+                // Options will go here
+            });
+
+*/
+
+
+      /*      $('#orderCreated').fancybox({
+                selector : '#orderCreated',
+                loop     : true
+            });
+
+*/
+       //     $.fancybox.open('<div class="message"><h2>Hello!</h2><p>You are awesome!</p></div>');
+
+            $.fancybox.open({
+                src:'#orderCreated'
+
+            });
+
+
+/*
+            $.fancybox.open({
+                href: '#orderCreated',
+            });
+
+*/
+
+/*
+            $.fancybox({
+                'href': '#orderCreated'
+            });
+*/
+
+
+/*
+
+           $("#orderCreated").fancybox({
+                'hideOnContentClick': true
+            });
+            */
+        })
+
+
+
+
+
+    function fillParametrs(){
+
+        $('.preloader').fadeIn('fast');
+        //   var data = $('#Parametrs').serialize();
+
+        var data = $('#Parametrs :input').serialize();
+        console.log(data);
+
+        $.post("/calculate", data, function (response) {
+
+            console.log(response)
+            if (response.error == false) {
+
+                calculatedValues = response.conditions;
+                BaseOffer = response.offer;
+                var conditions = '';
+                var descriptions = '';
+                $('.ProductImage').attr('src', '/' + response.device.ModelImage);
+                $('.ModelName').html(response.device.ModelName);
+                var ModelOptionsList = '';
+                response.device.options.forEach(function (item) {
+                    ModelOptionsList += item + ' ';
+                })
+                $('.ModelOptionsList').html(ModelOptionsList);
+
+                var hasckecked = false;
+                response.conditions.forEach(function (item) {
+                    /*        if ( (item.condition_description1 == null) &&  (item.condition_description2 == null) &&(item.condition_description3 == null)
+                     && (item.condition_description4 == null)  && (item.condition_description5 == null)  && (item.condition_description6 == null) ){
+                     continue;
+                     }
+                     */
+                    conditions = conditions + '<div class="radio tab2">' +
+                        '<input id="step3_' + item.Id + '" name="condition" type="radio" data-price="" ';
+
+                    if (hasckecked == false) {
+                        conditions = conditions + ' checked';
+                        hasckecked = true;
+
+                        if (item.Deduct == 1) {
+                            calculatedOffer = BaseOffer - (BaseOffer * item.Percent) / 100;
+
+                        } else {
+                            calculatedOffer = BaseOffer + (BaseOffer * item.Percent) / 100;
+                        }
+
+                        $('.selectedCondition').html(item.Name);
+
+
+                    }
+
+                    conditions = conditions + ' value="' + item.Id + '">' +
+                        '<label for="step3_' + item.Id + '" class="radio-step3">' +
+                        '<div class="title_wrapp">' +
+                        '<h4>' + item.Name + '</h4>' +
+                        '</div>' +
+                        //             '<p>Does not power on or has that affects normal use functio-nal or heavy physical damage that affects normal use</p>' +
+                        '</label>' +
+                        '</div>';
+
+
+                    descriptions = descriptions + ' <div class="tab_item2">' +
+                        '<div class="step3_cont">' +
+                        '<h3>Your device is in this condition if ALL of the following are true:</h3>' +
+                        '<ul>';
+
+
+                    if (item.condition_description1 != null) {
+                        descriptions = descriptions + '    <li>' + item.condition_description1 + '</li>';
+                    }
+                    if (item.condition_description2 != null) {
+                        descriptions = descriptions + '    <li>' + item.condition_description2 + '</li>';
+                    }
+                    if (item.condition_description3 != null) {
+                        descriptions = descriptions + '    <li>' + item.condition_description3 + '</li>';
+                    }
+                    if (item.condition_description4 != null) {
+                        descriptions = descriptions + '    <li>' + item.condition_description4 + '</li>';
+                    }
+                    if (item.condition_description5 != null) {
+                        descriptions = descriptions + '    <li>' + item.condition_description5 + '</li>';
+                    }
+                    if (item.condition_description6 != null) {
+                        descriptions = descriptions + '    <li>' + item.condition_description6 + '</li>';
+                    }
+                    descriptions = descriptions + '</ul>' +
+                        '</div>' +
+                        '</div>';
+                });
+
+                $('#Conditions').html(conditions);
+                $('#ConditionDescription').html(descriptions);
+
+                $('.calculatedOfer').html(calculatedOffer.toFixed(2));
+                $('#calculatedOfer').val(calculatedOffer.toFixed(2));
+
+                $(".tab_item2").not(':first').hide();
+                var current_fs = $('#ParametrList');
+                var next_fs = current_fs.next();
+                //activate next step on progressbar using the index of next_fs
+                $("#progressbar li").removeClass("active");
+                $("#progressbar li").eq($("fieldset").index(next_fs)).addClass("active");
+                next_fs.show();
+                current_fs.hide();
+                $('body, html, #breadCrumb').scrollTop(0);
+
+            } else {
+                //        alert('Error with your request');
+                toastr.error('Error with your request', 'Error');
+
+            }
+
+            $('.preloader').fadeOut('slow');
+        })
+
+    }
+
+
+
+
+/*
+
+    $('body').on('click', '#parametrsBtn', function (e) {
+
+        console.log('click');
+        console.log($('input[name=carrier]').val());
+        if ($('input[name=carrier]').val() != undefined) {
+            if ($('input[name=carrier]:checked').val() == undefined) {
+            //    alert('Please select carrier');
+                toastr.warning('Please select carrier', 'Carrier required');
+                return false;
+            }
+        }
+
+
+        if ( $('#allOptionsSelected').val() != "true") {
+
+                toastr.warning('Please select all avaliable options', 'Options selects required');
+                return false;
+
+        }
+
+
+        fillParametrs();
+
+
+    })
+*/
+
+
+
+
+    $('body').on('click', '.orderDetails', function (e) {
+
+
+        e.preventDefault();
+
+    var     data = $(this).data();
+        console.log(data)
+var url ='/admin/order/details/'+data.orderid;
+        $.get(url, function (data) {
+
+            $('<div class="modal fade in ">' + data + '</div>').modal();
+        });
+
+    });
+
+
+
+
+
+
+});

@@ -1,0 +1,293 @@
+var OrdersTable={};
+var OrdersTableLength=0;
+$(function () {
+    $('.st4 input[type=file]').change(function () {
+        var text = $('.st4 input[type=file]').val();
+        if (text.length != 0) {
+            $('.visible_picture em').text('File selected');
+        }
+        else {
+            $('.visible_picture em').text('File is not chose');
+        }
+    })
+
+  OrdersTable=  $('#myTable').DataTable({
+        "ordering": false,
+        "processing": false,
+      "responsive": true,
+
+      "infoCallback": function( settings, start, end, max, total, pre ) {
+    console.log(total);
+          OrdersTableLength=total;
+          $('#DatatableResults').html(total)
+      }
+    });
+
+
+    $('.center').slick({
+        centerMode: true,
+        centerPadding: '130px',
+        adaptiveHeight: true,
+        slidesToShow: 3,
+        // arrows: false,
+        dots: true,
+        responsive: [
+            {
+                breakpoint: 1200,
+                settings: {
+                    centerPadding: '80px'
+                }
+            },
+            {
+                breakpoint: 992,
+                settings: {
+                    arrows: false,
+                    centerMode: false,
+                    centerPadding: '0',
+                    slidesToShow: 3
+                }
+            },
+            {
+                breakpoint: 768,
+                settings: {
+                    arrows: false,
+                    centerMode: false,
+                    centerPadding: '0',
+                    slidesToShow: 2
+                }
+            },
+            {
+                breakpoint: 480,
+                settings: {
+                    arrows: false,
+                    centerMode: false,
+                    centerPadding: '0',
+                    slidesToShow: 1
+                }
+            }
+        ]
+    });
+    $(document).mouseup(function (e) {
+        var container = $(".categories");
+
+        if (container.has(e.target).length === 0) {
+            $('.categories > li > a').removeClass("active");
+            container.find('ul').hide();
+        }
+    });
+
+//  $("body").click(function (event) {
+//   var container = $(".categories > li > ul");
+//     if ($(event.target).closest(container).length === 0) {
+//         container.css('visibility', 'hidden');
+//     }
+// });
+
+  /*  $(".tab_item2").not(':first').hide(); */
+    $('body').on('click', ".tab2", function () {
+        $(".tab2").removeClass("active").eq($(this).index()).addClass("active");
+        $(".tab_item2").hide().eq($(this).index()).fadeIn();
+
+
+
+    }).eq(0).addClass("active");
+
+
+    $(".tab_item").not(':first').hide();
+
+    $(".tab").click(function () {
+        $(".tab").removeClass("active").eq($(this).index()).addClass("active");
+        $(".tab_item").hide().eq($(this).index()).fadeIn();
+
+    }).eq(0).addClass("active");
+
+
+    $('.sign_form a:not(.reset)').click(function (event) {
+        event.preventDefault();
+        $('.sign_side_wrapp .tabs .tab2:nth-child(2)').trigger('click');
+    });
+
+    // $(".cat_rside ul ul").niceScroll({
+    //   cursorcolor:"#d7d4d4",
+    //   cursorwidth: "8px",
+    //   zindex: "9",
+    //   autohidemode: "cursor"
+    // });
+
+    $("input[type='tel']").mask("999-999-9999", {placeholder: "xxx-xxx-xxxx"});
+
+
+    $('.faqs .question ').click(function () {
+        var $item = $(this).closest('.item'),
+            itemOther = $('.faqs .item');
+
+        if (!$item.hasClass('active')) {
+            itemOther.removeClass('active');
+            $item.addClass('active');
+            itemOther.find('.answer').slideUp();
+            $item.find('.answer').slideDown();
+        } else {
+            itemOther.removeClass('active');
+            itemOther.find('.answer').slideUp();
+        }
+    });
+
+
+    var maxCount = 1000;
+    $("#max_counter").html(maxCount);
+    $(".st4 textarea").keyup(function () {
+        var revText = this.value.length;
+        if (revText > maxCount) {
+            this.value = this.value.substr(0, maxCount);
+        }
+        $("#counter").html(revText);
+    });
+
+
+    $('.privacy_l ul li:first').addClass('active');
+    $('.privacy_l ul li').click(function (e) {
+        $('.privacy_l ul li').removeClass('active');
+        $(this).addClass('active');
+    });
+
+
+    var elem = $('.privacy_l ul');
+    var under = $('footer')
+    var offset_elem,
+        offset_under,
+        max_height;
+    if (($('.privacy_l ul').length) == 1) {
+        function wResize() {
+            offset_elem = elem.offset();
+            offset_under = under.offset();
+            max_height = offset_under.top - elem.height() - 210;
+            $(window).scroll(function () {
+                if ($(this).scrollTop() > offset_elem.top - 100) {
+                    elem.addClass("f_elem");
+                    if ($(this).scrollTop() > max_height) {
+                        elem.css({
+                            'top': max_height,
+                            'position': 'absolute'
+                        });
+                    }
+                    else {
+                        elem.attr({
+                            'style': 'top',
+                            'style': 'position'
+                        });
+                    }
+                } else {
+                    elem.removeClass("f_elem ");
+                }
+            });
+        };
+        wResize()
+        $(window).resize(function () {
+            wResize()
+        });
+    }
+
+
+    $(".privacy_l").on("click", "a", function (event) {
+        event.preventDefault();
+        var id = $(this).attr('href'),
+            top = $(id).offset().top - 30;
+        $('body,html').stop().animate({scrollTop: top}, 1000);
+    });
+
+
+// step
+    var current_fs, next_fs, previous_fs; //fieldsets
+
+    $(".next").click(function () {
+
+        current_fs = $(this).closest('fieldset');
+        next_fs = $(this).closest('fieldset').next();
+
+        //activate next step on progressbar using the index of next_fs
+        $("#progressbar li").removeClass("active");
+        $("#progressbar li").eq($("fieldset").index(next_fs)).addClass("active");
+
+        //show the next fieldset
+        next_fs.show();
+
+
+        //hide the current fieldset with style
+        current_fs.hide();
+        $('body, html, #breadCrumb').scrollTop(0);
+
+    });
+
+    $(".previous").click(function () {
+
+
+
+
+        current_fs = $(this).closest('fieldset');
+
+        console.log(window.TotalOptionsCount);
+        console.log(current_fs[0].id);
+
+        if(  current_fs[0].id =='ConditionList' && window.TotalOptionsCount==0){
+
+            previous_fs = $(this).closest('fieldset').prev().prev();
+            $("#progressbar li").eq($("fieldset").index(current_fs)).removeClass("active");
+            $("#progressbar li").eq($("fieldset").index(current_fs) - 2).addClass("active");
+
+        }else{
+            previous_fs = $(this).closest('fieldset').prev();
+            //de-activate current step on progressbar
+            $("#progressbar li").eq($("fieldset").index(current_fs)).removeClass("active");
+            $("#progressbar li").eq($("fieldset").index(current_fs) - 1).addClass("active");
+
+
+        }
+
+
+
+
+
+
+
+        //show the previous fieldset
+        previous_fs.show();
+        //hide the current fieldset with style
+        current_fs.hide();
+
+    });
+
+    $(".zero").niceScroll();
+
+// select
+    $('.select_cont >*').not(':nth-child(2)').hide();
+
+
+
+// _select
+
+
+    $(".toggle-mnu").click(function () {
+        $(this).toggleClass("on");
+        $("nav .mnu").slideToggle();
+        return false;
+    });
+
+    $(".categories > li > a").click(function () {
+        $(this).toggleClass("active");
+        $(this).next().slideToggle();
+    });
+
+
+    $(".tab_item_q").not(':first').hide();
+    $(".tab_q").click(function () {
+        $(".tab_q").removeClass("active").eq($(this).index()).addClass("active");
+        $(".tab_item_q").hide().eq($(this).index()).fadeIn();
+
+    }).eq(0).addClass("active");
+
+});
+
+/*
+$(window).on('load', function () {
+    $('.preloader').delay(1000).fadeOut('slow');
+})*/
